@@ -1,4 +1,3 @@
-//Кастомный хук контроля размеров окна украден со стековерфлоу - https://stackoverflow.com/questions/36862334/get-viewport-window-height-in-reactjs
 import { useState, useEffect } from "react";
 
 function getWindowDimensions() {

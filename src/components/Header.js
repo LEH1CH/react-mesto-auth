@@ -33,7 +33,7 @@ function Header(props) {
           </span>
           <button
             onClick={handleLogoutClick}
-            className="header__btn header__btn_type_text link-transparency"
+            className="header__btn header__btn_type_text link-transparency link"
           >
             Выйти
           </button>
@@ -53,7 +53,7 @@ function Header(props) {
                 )}
                 <button
                   onClick={handleLogoutClick}
-                  className="header__btn header__btn_type_text link-transparency"
+                  className="header__btn header__btn_type_text link-transparency link"
                 >
                   Выйти
                 </button>
@@ -63,8 +63,8 @@ function Header(props) {
                 onClick={handleBurgerClick}
                 className={
                   isBurgerOpen
-                    ? "header__btn header__btn_type_close link-transparency"
-                    : "header__btn header__btn_type_burger link-transparency"
+                    ? "header__btn header__btn_type_close link-transparency link"
+                    : "header__btn header__btn_type_burger link-transparency link"
                 }
               />
             )
