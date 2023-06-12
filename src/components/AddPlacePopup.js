@@ -6,7 +6,7 @@ function AddPlacePopup(props) {
   const [name, setName] = React.useState("");
   const [link, setLink] = React.useState("");
 
-  //Обнуление значений переменных состояний при закрытии попапа
+  //Обнуление значений переменных состояний при закрытии
   React.useEffect(() => {
     if (props.isOpen) {
       setName("");
