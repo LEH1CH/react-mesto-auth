@@ -16,3 +16,10 @@ export const connectionConfig = {
   token: "9015b21c-073a-42b5-b160-2016f514138f",
   group: "cohort-64",
 };
+
+export const authConfig = {
+  server: "https://auth.nomoreparties.co",
+  registerPath: "signup",
+  loginPath: "signin",
+  authCheckPath: "users/me",
+};

@@ -1,23 +1,38 @@
 import React, { useState } from "react";
+import {
+  Navigate,
+  useNavigate,
+  useLocation,
+  Routes,
+  Route,
+} from "react-router-dom";
 import "../pages/index.css";
 import Header from "./Header.js";
 import Main from "./Main.js";
 import Footer from "./Footer.js";
-import PopupWithForm from "./PopupWithForm.js";
 import EditProfilePopup from "./EditProfilePopup.js";
 import EditAvatarPopup from "./EditAvatarPopup.js";
 import AddPlacePopup from "./AddPlacePopup.js";
 import ConfirmPopup from "./ConfirmPopup.js";
 import ImagePopup from "./ImagePopup.js";
 import api from "../utils/Api.js";
+import auth from "../utils/Auth.js";
 import { CurrentUserContext } from "../contexts/CurrentUserContext.js";
+import AuthForm from "./AuthForm.js";
+import Page404 from "./Page404.js";
+import ProtectedRouteElement from "./ProtectedRoute.js";
+import InfoTooltip from "./InfoTooltip.js";
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   //Переменные состояний
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
   const [isConfirmPopupOpen, setIsConfirmPopupOpen] = useState(false);
+  const [isInfoTooltipOpen, setInfoTooltipOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState({ name: "", link: "" });
   const [currentUser, setCurrentUser] = useState({
     name: "",
@@ -27,6 +42,10 @@ function App() {
   const [cards, setCards] = useState([]);
   const [cardToDelete, setCardToDelete] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedUp, setIsLoggedUp] = useState(false);
+  const [page, setPage] = useState("");
+  const [email, setEmail] = useState("");
 
   //Получаем с сервера данные пользователя
   React.useEffect(function () {
@@ -52,7 +71,17 @@ function App() {
       });
   }, []);
 
-  //Добавляем лисенер нажатия на кнопки для закрытия попапов по Esc
+  //Проверяем аутентифицирован ли пользователь
+  React.useEffect(() => {
+    handleAuthCheck();
+  }, []);
+
+  //Определяем текущую страницу
+  React.useEffect(() => {
+    setPage(location.pathname);
+  }, [location]);
+
+  //Добавляем нажатие на кнопки для закрытия попапов через Esc
   React.useEffect(() => {
     document.addEventListener("keydown", handleEscPress);
   }, []);
@@ -175,19 +204,119 @@ function App() {
       .finally(() => setTimeout(() => setIsSaving(false), 1000));
   }
 
+  //Обработчик регистрации нового пользователя на сервере
+  function handleRegisterSubmit(newUserData) {
+    auth
+      .register(newUserData)
+      .then((data) => {
+        setIsLoggedUp(true);
+        navigate("/sign-in", { replace: true });
+      })
+      .catch((err) => {
+        setIsLoggedUp(false);
+        alert(`Не удалось зарегистрировать пользователя! Ошибка: ${err}`);
+      })
+      .finally(() => setInfoTooltipOpen(true));
+  }
+
+  //Обработчик авторизации пользователя на сервере
+  function handleLoginSubmit(userData) {
+    auth
+      .login(userData)
+      .then((data) => {
+        localStorage.setItem("token", data.token);
+        handleAuthCheck();
+      })
+      .catch((err) => {
+        alert(`Не удалось войти в систему! Ошибка: ${err}`);
+      });
+  }
+
+  //Обработчик авторизации пользователя на сервере
+  function handleLogout() {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    setEmail("");
+    navigate("/sign-in", { replace: true });
+  }
+
+  //Обработчик проверки выполненной авторизации
+  function handleAuthCheck() {
+    const jwt = localStorage.getItem("token");
+    if (jwt) {
+      auth
+        .authCheck(jwt)
+        .then(({ data }) => {
+          setIsLoggedIn(true);
+          setEmail(data.email);
+          navigate("/cards", { replace: true });
+        })
+        .catch((err) => {
+          alert(`Не удалось войти в систему! Ошибка: ${err}`);
+        });
+    }
+  }
+
   return (
     <div className="page">
       <CurrentUserContext.Provider value={currentUser}>
-        <Header />
-        <Main
-          onEditProfile={handleEditProfileClick}
-          onAddPlace={handleAddPlaceClick}
-          onEditAvatar={handleEditAvatarClick}
-          onCardClick={handleCardClick}
-          onCardLike={handleCardLike}
-          onCardDelete={handleCardDelete}
-          cards={cards}
+        <Header
+          loggedIn={isLoggedIn}
+          email={email}
+          onBtnClick={handleLogout}
+          page={page}
         />
+        <Routes>
+          <Route
+            path="/sign-up"
+            element={
+              <AuthForm
+                submitBtnCap="Зарегистрироваться"
+                title="Регистрация"
+                onSubmit={handleRegisterSubmit}
+                spanText={true}
+              />
+            }
+          />
+          <Route
+            path="/sign-in"
+            element={
+              <AuthForm
+                submitBtnCap="Войти"
+                title="Вход"
+                onSubmit={handleLoginSubmit}
+                spanText={false}
+              />
+            }
+          />
+          <Route
+            path="/"
+            element={
+              isLoggedIn ? (
+                <Navigate to="/cards" replace />
+              ) : (
+                <Navigate to="/sign-in" replace />
+              )
+            }
+          />
+          <Route path="*" element={<Page404 />} />
+          <Route
+            path="/cards"
+            element={
+              <ProtectedRouteElement
+                element={Main}
+                loggedIn={isLoggedIn}
+                onEditProfile={handleEditProfileClick}
+                onAddPlace={handleAddPlaceClick}
+                nEditAvatar={handleEditAvatarClick}
+                onCardClick={handleCardClick}
+                onCardLike={handleCardLike}
+                onCardDelete={handleCardDelete}
+                cards={cards}
+              />
+            }
+          />
+        </Routes>
         <Footer />
 
         <EditProfilePopup
@@ -219,6 +348,11 @@ function App() {
           onClose={closeAllPopups}
         />
         <ImagePopup selectedCard={selectedCard} onClose={closeAllPopups} />
+        <InfoTooltip
+          isOpen={isInfoTooltipOpen}
+          isOk={isLoggedUp}
+          onClose={closeAllPopups}
+        />
       </CurrentUserContext.Provider>
     </div>
   );

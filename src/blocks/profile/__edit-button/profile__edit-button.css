@@ -1,7 +1,11 @@
 .profile__edit-button {
-  background-position: center;
-  background-repeat: no-repeat;
-  background-color: transparent;
-  cursor: pointer;
+  background-color: initial;
+    border: 0;
+    cursor: pointer;
+    height: 24px;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    width: 24px;
 }
 
