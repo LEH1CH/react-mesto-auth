@@ -24,16 +24,6 @@ function PopupWithForm(props) {
           {props.children}
 
           <button
-            type="submit"
-            className={`popup__button link ${
-              props.submitBtnDisabled ? "popup__button_disabled" : ""
-            }`}
-            name="submitBtn"
-            disabled={props.submitBtnDisabled}
-          >
-            {props.submitBtnCaption}
-          </button>
-          <button
             type="button"
             onClick={props.onClose}
             className="popup__close link"

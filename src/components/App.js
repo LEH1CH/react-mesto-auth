@@ -48,28 +48,38 @@ function App() {
   const [email, setEmail] = useState("");
 
   //Получаем с сервера данные пользователя
-  React.useEffect(function () {
-    api
-      .getProfileData()
-      .then((data) => {
-        setCurrentUser(data);
-      })
-      .catch((err) => {
-        alert(`Не удалось загрузить данные профиля! Ошибка: ${err}`);
-      });
-  }, []);
+  React.useEffect(
+    function () {
+      if (isLoggedIn) {
+        api
+          .getProfileData()
+          .then((data) => {
+            setCurrentUser(data);
+          })
+          .catch((err) => {
+            alert(`Не удалось загрузить данные профиля! Ошибка: ${err}`);
+          });
+      }
+    },
+    [isLoggedIn]
+  );
 
   //Получаем с сервера данные карточек
-  React.useEffect(function () {
-    api
-      .getInitialCards()
-      .then((data) => {
-        setCards(data);
-      })
-      .catch((err) => {
-        alert(`Не удалось загрузить данные карточек! Ошибка: ${err}`);
-      });
-  }, []);
+  React.useEffect(
+    function () {
+      if (isLoggedIn) {
+        api
+          .getInitialCards()
+          .then((data) => {
+            setCards(data);
+          })
+          .catch((err) => {
+            alert(`Не удалось загрузить данные карточек! Ошибка: ${err}`);
+          });
+      }
+    },
+    [isLoggedIn]
+  );
 
   //Проверяем аутентифицирован ли пользователь
   React.useEffect(() => {
@@ -114,6 +124,7 @@ function App() {
     setIsEditProfilePopupOpen(false);
     setIsAddPlacePopupOpen(false);
     setIsConfirmPopupOpen(false);
+    setInfoTooltipOpen(false);
     setSelectedCard({ name: "", link: "" });
     setCardToDelete(null);
   }
@@ -214,7 +225,7 @@ function App() {
       })
       .catch((err) => {
         setIsLoggedUp(false);
-        alert(`Не удалось зарегистрировать пользователя! Ошибка: ${err}`);
+        console.log(`Не удалось зарегистрировать пользователя! Ошибка: ${err}`);
       })
       .finally(() => setInfoTooltipOpen(true));
   }
@@ -225,10 +236,16 @@ function App() {
       .login(userData)
       .then((data) => {
         localStorage.setItem("token", data.token);
+        setIsLoggedUp(true);
+        setIsLoggedIn(true); // Устанавливаем флаг аутентификации в true
+        setEmail(userData.email); // Записываем email пользователя
+        navigate("/cards", { replace: true });
         handleAuthCheck();
       })
       .catch((err) => {
-        alert(`Не удалось войти в систему! Ошибка: ${err}`);
+        setIsLoggedUp(false);
+        setInfoTooltipOpen(true);
+        console.log(`Не удалось войти в систему! Ошибка: ${err}`);
       });
   }
 
@@ -308,7 +325,7 @@ function App() {
                 loggedIn={isLoggedIn}
                 onEditProfile={handleEditProfileClick}
                 onAddPlace={handleAddPlaceClick}
-                nEditAvatar={handleEditAvatarClick}
+                onEditAvatar={handleEditAvatarClick}
                 onCardClick={handleCardClick}
                 onCardLike={handleCardLike}
                 onCardDelete={handleCardDelete}

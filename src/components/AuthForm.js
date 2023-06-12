@@ -1,28 +1,32 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { useValidation } from "../hooks/useValidation";
 
 function AuthForm(props) {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
+  const {
+    values,
+    setValues,
+    errors,
+    setErrors,
+    isValid,
+    setIsValid,
+    handleChange,
+    resetForm,
+  } = useValidation();
 
   React.useEffect(() => {
     if (props.spanText) {
-      setEmail("");
-      setPassword("");
+      resetForm(
+        { email: "", password: "" },
+        { email: "", password: "" },
+        false
+      );
     }
   }, [, props.title]);
 
-  function handleEmailChange(e) {
-    setEmail(e.target.value);
-  }
-
-  function handlePasswordChange(e) {
-    setPassword(e.target.value);
-  }
-
   function handleSubmit(e) {
     e.preventDefault();
-    props.onSubmit({ email, password });
+    props.onSubmit(values);
   }
 
   return (
@@ -33,8 +37,8 @@ function AuthForm(props) {
           <fieldset className="sign__fieldset">
             <input
               type="email"
-              value={email}
-              onChange={handleEmailChange}
+              value={values.email ? values.email : ""}
+              onChange={handleChange}
               className="sign__input"
               placeholder="Email"
               name="email"
@@ -42,13 +46,19 @@ function AuthForm(props) {
               minLength="2"
               maxLength="40"
             />
-            <span className="popup__input-error name-error"></span>
+            <span
+              className={`popup__error ${
+                !isValid ? "popup__input_type_error" : ""
+              }`}
+            >
+              {errors.email}
+            </span>
           </fieldset>
           <fieldset className="sign__fieldset">
             <input
               type="password"
-              value={password}
-              onChange={handlePasswordChange}
+              value={values.password ? values.password : ""}
+              onChange={handleChange}
               className="sign__input"
               placeholder="Пароль"
               name="password"
@@ -57,12 +67,21 @@ function AuthForm(props) {
               maxLength="40"
               autoComplete="new-password"
             />
-            <span className="popup__input-error prof-error"></span>
+            <span
+              className={`popup__error ${
+                !isValid ? "popup__input_type_error" : ""
+              }`}
+            >
+              {errors.password}
+            </span>
           </fieldset>
           <button
             type="submit"
-            className={`sign__submit-button`}
+            className={`sign__submit-button ${
+              !isValid ? "sign__submit-button_inactive" : ""
+            }`}
             name="submitBtn"
+            disabled={!isValid}
           >
             {props.submitBtnCap}
           </button>
